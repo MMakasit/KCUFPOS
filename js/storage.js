@@ -44,3 +44,38 @@ function saveData() {
     const currentDate = document.getElementById('current-date').value;
     localStorage.setItem(`food-counter-${currentDate}`, JSON.stringify(menuData));
 }
+
+// เพิ่มในไฟล์ storage.js - สร้างฟังก์ชันสำหรับบันทึกการขายที่เสร็จสมบูรณ์
+function saveDailySales(saleData) {
+    const currentDate = document.getElementById('current-date').value;
+    let dailySales = localStorage.getItem(`food-counter-sales-${currentDate}`);
+    
+    if (dailySales) {
+        dailySales = JSON.parse(dailySales);
+        dailySales.sales.push(saleData);
+        dailySales.totalRevenue += saleData.totalAmount;
+    } else {
+        dailySales = {
+            sales: [saleData],
+            totalRevenue: saleData.totalAmount
+        };
+    }
+    
+    localStorage.setItem(`food-counter-sales-${currentDate}`, JSON.stringify(dailySales));
+    return dailySales;
+}
+
+// เพิ่มในไฟล์ storage.js - สร้างฟังก์ชันสำหรับโหลดยอดขายรายวัน
+function loadDailySales() {
+    const currentDate = document.getElementById('current-date').value;
+    const dailySales = localStorage.getItem(`food-counter-sales-${currentDate}`);
+    
+    if (dailySales) {
+        return JSON.parse(dailySales);
+    } else {
+        return {
+            sales: [],
+            totalRevenue: 0
+        };
+    }
+}

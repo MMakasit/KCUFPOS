@@ -1,7 +1,13 @@
 // ฟังก์ชันส่งออกข้อมูลเป็น CSV
 function exportDataToCSV() {
     const currentDate = document.getElementById('current-date').value;
-    let csvContent = "ชื่อเมนู,ราคา,จำนวน,ยอดรวม\n";
+    const dailySales = loadDailySales();
+    
+    let csvContent = "ข้อมูลยอดขายประจำวันที่ " + currentDate + "\n\n";
+    
+    // รายการปัจจุบัน
+    csvContent += "รายการปัจจุบัน:\n";
+    csvContent += "ชื่อเมนู,ราคา,จำนวน,ยอดรวม\n";
     
     let totalItems = 0;
     let totalRevenue = 0;
@@ -15,7 +21,31 @@ function exportDataToCSV() {
         }
     }
     
-    csvContent += `\nจำนวนรวมทั้งหมด,,${totalItems},${totalRevenue}\n`;
+    csvContent += `\nจำนวนรวมทั้งหมด,,${totalItems},${totalRevenue}\n\n`;
+    
+    // ยอดขายประจำวัน
+    csvContent += "ยอดขายประจำวันที่ " + currentDate + ":\n";
+    csvContent += "เวลา,รายการ,ยอดรวม\n";
+    
+    if (dailySales.sales.length > 0) {
+        dailySales.sales.forEach((sale) => {
+            const saleTime = new Date(sale.timestamp).toLocaleTimeString();
+            let itemsList = "";
+            
+            for (const [menuName, itemInfo] of Object.entries(sale.items)) {
+                itemsList += `${menuName} x${itemInfo.count}, `;
+            }
+            
+            itemsList = itemsList.slice(0, -2); // ตัดเครื่องหมาย ", " ตัวสุดท้ายออก
+            
+            csvContent += `"${saleTime}","${itemsList}",${sale.totalAmount}\n`;
+        });
+        
+        csvContent += `\nจำนวนการขายทั้งหมด,${dailySales.sales.length} ครั้ง\n`;
+        csvContent += `ยอดเงินรวมประจำวัน,,${dailySales.totalRevenue} บาท\n`;
+    } else {
+        csvContent += "ไม่มีการขายในวันนี้\n";
+    }
     
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);

@@ -133,7 +133,7 @@ function updateSummary() {
     const summaryContent = document.getElementById('summary-content');
     let totalItems = 0;
     let totalRevenue = 0;
-    let summaryHTML = '<ul>';
+    let summaryHTML = '<h3>รายการปัจจุบัน</h3><ul>';
     
     for (const [menuName, menuInfo] of Object.entries(menuData)) {
         if (menuInfo.count > 0) {
@@ -147,6 +147,24 @@ function updateSummary() {
     summaryHTML += '</ul>';
     summaryHTML += `<p><strong>จำนวนรวมทั้งหมด: ${totalItems} รายการ</strong></p>`;
     summaryHTML += `<p><strong>ยอดเงินรวมทั้งหมด: ${totalRevenue} บาท</strong></p>`;
+    
+    // เพิ่มข้อมูลสรุปยอดขายประจำวัน
+    const dailySales = loadDailySales();
+    summaryHTML += '<hr/>';
+    summaryHTML += '<h3>สรุปยอดขายประจำวัน</h3>';
+    
+    if (dailySales.sales.length > 0) {
+        summaryHTML += '<ul>';
+        dailySales.sales.forEach((sale, index) => {
+            const saleTime = new Date(sale.timestamp).toLocaleTimeString();
+            summaryHTML += `<li>การขายครั้งที่ ${index + 1} (${saleTime}) - ${sale.totalAmount} บาท</li>`;
+        });
+        summaryHTML += '</ul>';
+        summaryHTML += `<p><strong>จำนวนการขายวันนี้: ${dailySales.sales.length} ครั้ง</strong></p>`;
+        summaryHTML += `<p><strong>ยอดเงินรวมประจำวัน: ${dailySales.totalRevenue} บาท</strong></p>`;
+    } else {
+        summaryHTML += '<p>ยังไม่มีการขายในวันนี้</p>';
+    }
     
     summaryContent.innerHTML = summaryHTML;
 }
@@ -184,7 +202,8 @@ function closePaymentModal() {
 
 // ฟังก์ชันประมวลผลการชำระเงิน
 function processPayment() {
-    const totalPrice = parseFloat(document.getElementById('total-price').value);
+    const totalPriceText = document.getElementById('total-price').value;
+    const totalPrice = parseFloat(totalPriceText.replace(' บาท', ''));
     const customerPaid = parseFloat(document.getElementById('customer-paid').value);
     const changeInput = document.getElementById('change');
     
@@ -196,13 +215,36 @@ function processPayment() {
     const change = customerPaid - totalPrice;
     changeInput.value = `${change} บาท`;
     
+    // สร้างข้อมูลการขาย
+    const saleData = {
+        timestamp: new Date().getTime(),
+        items: {},
+        totalAmount: totalPrice,
+        customerPaid: customerPaid,
+        change: change
+    };
+    
+    // บันทึกรายการอาหารที่ขาย
+    for (const [menuName, menuInfo] of Object.entries(menuData)) {
+        if (menuInfo.count > 0) {
+            saleData.items[menuName] = {
+                price: menuInfo.price,
+                count: menuInfo.count,
+                total: menuInfo.price * menuInfo.count
+            };
+        }
+    }
+    
     // บันทึกการขาย
-    saveData();
+    saveDailySales(saleData);
     
     // รีเซ็ตจำนวนเมนู
     for (const menuName in menuData) {
         menuData[menuName].count = 0;
     }
+    
+    // บันทึกข้อมูลเมนูที่อัปเดตแล้ว
+    saveData();
     
     // อัปเดต UI
     renderMenuItems();
