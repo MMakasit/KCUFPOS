@@ -201,3 +201,24 @@ button.delete {
     border-radius: 5px;
     cursor: pointer;
 }
+
+.payment-btn {
+    background-color: #FF9800;
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    text-align: center;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 18px;
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
+
+.payment-button-container {
+    background-color: white;
+    border-radius: 10px;
+    padding: 15px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    margin-bottom: 20px;
+}
