@@ -129,6 +129,7 @@ function saveEditMenu() {
 }
 
 // ฟังก์ชันอัปเดตสรุปยอดรวม
+// ฟังก์ชันอัปเดตสรุปยอดรวม
 function updateSummary() {
     const summaryContent = document.getElementById('summary-content');
     let totalItems = 0;
@@ -154,12 +155,45 @@ function updateSummary() {
     summaryHTML += '<h3>สรุปยอดขายประจำวัน</h3>';
     
     if (dailySales.sales.length > 0) {
+        // สร้างออบเจ็กต์เก็บยอดรวมของแต่ละเมนูที่ขายในวันนั้น
+        let menuTotalSold = {};
+        
+        // รวมจำนวนอาหารที่ขายในแต่ละรายการ
+        dailySales.sales.forEach(sale => {
+            for (const [menuName, itemInfo] of Object.entries(sale.items)) {
+                if (!menuTotalSold[menuName]) {
+                    menuTotalSold[menuName] = {
+                        count: 0,
+                        revenue: 0
+                    };
+                }
+                menuTotalSold[menuName].count += itemInfo.count;
+                menuTotalSold[menuName].revenue += itemInfo.total;
+            }
+        });
+        
+        // แสดงสรุปยอดรวมของแต่ละเมนูที่ขายในวันนั้น
+        summaryHTML += '<h4>ยอดรวมอาหารแต่ละรายการ:</h4>';
+        summaryHTML += '<ul>';
+        for (const [menuName, info] of Object.entries(menuTotalSold)) {
+            summaryHTML += `<li>${menuName}: ขายได้ทั้งหมด ${info.count} รายการ = ${info.revenue} บาท</li>`;
+        }
+        summaryHTML += '</ul>';
+        
+        // แสดงรายการแต่ละครั้งที่ขาย
+        summaryHTML += '<h4>รายการขายแต่ละครั้ง:</h4>';
         summaryHTML += '<ul>';
         dailySales.sales.forEach((sale, index) => {
             const saleTime = new Date(sale.timestamp).toLocaleTimeString();
-            summaryHTML += `<li>การขายครั้งที่ ${index + 1} (${saleTime}) - ${sale.totalAmount} บาท</li>`;
+            let itemsList = '';
+            for (const [menuName, itemInfo] of Object.entries(sale.items)) {
+                itemsList += `${menuName} x${itemInfo.count}, `;
+            }
+            itemsList = itemsList.slice(0, -2); // ตัดเครื่องหมาย ", " ตัวสุดท้ายออก
+            summaryHTML += `<li>การขายครั้งที่ ${index + 1} (${saleTime}) - ${itemsList} - ${sale.totalAmount} บาท</li>`;
         });
         summaryHTML += '</ul>';
+        
         summaryHTML += `<p><strong>จำนวนการขายวันนี้: ${dailySales.sales.length} ครั้ง</strong></p>`;
         summaryHTML += `<p><strong>ยอดเงินรวมประจำวัน: ${dailySales.totalRevenue} บาท</strong></p>`;
     } else {
@@ -262,8 +296,13 @@ function initPaymentButton() {
     paymentButton.className = 'payment-btn';
     paymentButton.onclick = openPaymentModal;
     
-    const summarySection = document.querySelector('.summary');
-    summarySection.appendChild(paymentButton);
+    // เปลี่ยนจาก .summary เป็น .payment-button-container
+    const paymentContainer = document.querySelector('.payment-button-container');
+    if (paymentContainer) {
+        // ล้างเนื้อหาเดิม (ถ้ามี) และเพิ่มปุ่มใหม่
+        paymentContainer.innerHTML = '';
+        paymentContainer.appendChild(paymentButton);
+    }
 }
 
 // เรียกใช้ฟังก์ชันเมื่อโหลดหน้าเว็บ

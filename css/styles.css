@@ -213,7 +213,23 @@ button.delete {
     font-size: 18px;
     margin-top: 10px;
     margin-bottom: 10px;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
 }
+
+/*.payment-btn {
+    background-color: #FF9800;
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    text-align: center;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 18px;
+    margin-top: 10px;
+    margin-bottom: 10px;
+}*/
 
 .payment-button-container {
     background-color: white;
