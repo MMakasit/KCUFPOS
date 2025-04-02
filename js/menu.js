@@ -129,7 +129,6 @@ function saveEditMenu() {
 }
 
 // ฟังก์ชันอัปเดตสรุปยอดรวม
-// ฟังก์ชันอัปเดตสรุปยอดรวม
 function updateSummary() {
     const summaryContent = document.getElementById('summary-content');
     let totalItems = 0;
@@ -235,27 +234,17 @@ function closePaymentModal() {
 }
 
 // ฟังก์ชันประมวลผลการชำระเงิน
+// ฟังก์ชันประมวลผลการชำระเงิน
 function processPayment() {
     const totalPriceText = document.getElementById('total-price').value;
     const totalPrice = parseFloat(totalPriceText.replace(' บาท', ''));
-    const customerPaid = parseFloat(document.getElementById('customer-paid').value);
-    const changeInput = document.getElementById('change');
-    
-    if (isNaN(customerPaid) || customerPaid < totalPrice) {
-        alert('กรุณากรอกจำนวนเงินให้ถูกต้อง');
-        return;
-    }
-    
-    const change = customerPaid - totalPrice;
-    changeInput.value = `${change} บาท`;
     
     // สร้างข้อมูลการขาย
     const saleData = {
         timestamp: new Date().getTime(),
         items: {},
-        totalAmount: totalPrice,
-        customerPaid: customerPaid,
-        change: change
+        totalAmount: totalPrice
+        // ลบ customerPaid และ change จากตรงนี้
     };
     
     // บันทึกรายการอาหารที่ขาย
@@ -285,7 +274,7 @@ function processPayment() {
     updateSummary();
     
     // ปิดโมดัล
-    alert('ชำระเงินสำเร็จ');
+    //alert('ชำระเงินสำเร็จ');
     closePaymentModal();
 }
 
