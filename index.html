@@ -12,13 +12,31 @@
   </head>
 
   <body>
-    <div class="header">
-      <h1>ระบบนับจำนวนอาหารและคำนวณยอดขาย</h1>
-    </div>
+    <!-- Navbar -->
+    <nav class="navbar">
+      <div class="nav-brand">KCUFPOS</div>
+      <div class="nav-links">
+        <button class="nav-btn active" onclick="switchTab('tab-home', this)">🏠 หน้าหลัก</button>
+        <button class="nav-btn" onclick="switchTab('tab-add-menu', this)">➕ เพิ่มเมนู</button>
+        <button class="nav-btn" onclick="switchTab('tab-summary', this)">📊 สรุปยอดขาย</button>
+      </div>
+    </nav>
+
+    <!-- แท็บหน้าหลัก -->
+    <div id="tab-home" class="tab-content active-tab">
 
     <div class="date-picker">
       <label for="current-date">เลือกวันที่: </label>
       <input type="date" id="current-date" />
+    </div>
+
+    <!-- Category Filter -->
+    <div class="category-filters" id="category-filters">
+      <button class="filter-btn active" onclick="filterCategory('All')">ทั้งหมด</button>
+      <button class="filter-btn" onclick="filterCategory('หมูสะเต๊ะ')">หมูสะเต๊ะ</button>
+      <button class="filter-btn" onclick="filterCategory('หอยทอด')">หอยทอด</button>
+      <button class="filter-btn" onclick="filterCategory('ผัดไทย')">ผัดไทย</button>
+      <button class="filter-btn" onclick="filterCategory('เครื่องเคียง')">เครื่องเคียง</button>
     </div>
 
     <div class="payment-button-container">
@@ -28,14 +46,25 @@
     <div class="menu-list" id="menu-list">
       <!-- เมนูอาหารจะถูกสร้างโดย JavaScript -->
     </div>
-
-    <div class="summary">
+    
+    <!-- สรุปรายการปัจจุบัน -->
+    <div class="summary current-order-summary" id="current-order-summary" style="display: none;">
       <h2>รายการอาหารของลูกค้า</h2>
-      <div id="summary-content">
-        <!-- สรุปยอดขายจะถูกสร้างโดย JavaScript -->
+      <h3>รายการปัจจุบัน</h3>
+      <div id="current-order-content"></div>
+    </div>
+    
+    </div> <!-- ปิดแท็บหน้าหลัก -->
+
+    <!-- แท็บสรุปยอดขาย -->
+    <div id="tab-summary" class="tab-content">
+      <div class="summary">
+        <div id="summary-content">
+          <!-- สรุปยอดขายจะถูกสร้างโดย JavaScript -->
+        </div>
+        <button id="export-csv" class="export-btn">ส่งออกเป็น CSV</button>
+        <button id="export-pdf" class="export-btn">ส่งออกเป็น PDF</button>
       </div>
-      <button id="export-csv" class="export-btn">ส่งออกเป็น CSV</button>
-      <button id="export-pdf" class="export-btn">ส่งออกเป็น PDF</button>
     </div>
 
     <!-- Modal สำหรับแก้ไขเมนู -->
@@ -69,26 +98,47 @@
           <!-- สรุปรายการสั่งอาหาร -->
         </div>
         <div class="form-group">
-          <label for="total-price">ยอดรวม:</label>
+          <label for="total-price">ยอดรวม (บาท):</label>
           <input type="text" id="total-price" readonly />
         </div>
-        <button onclick="processPayment()">ชำระเงินสำเร็จ</button>
+        <div class="form-group">
+          <label for="receive-amount">รับเงินมา (บาท):</label>
+          <input type="number" id="receive-amount" placeholder="กรอกจำนวนเงินที่รับมา" oninput="calculateChange()" min="0"/>
+        </div>
+        <div class="form-group">
+          <label for="change-amount">เงินทอน (บาท):</label>
+          <input type="text" id="change-amount" readonly class="highlight-input" />
+        </div>
+        <button id="btn-process-payment" onclick="processPayment()" disabled>ชำระเงินสำเร็จ</button>
       </div>
     </div>
 
-    <div class="add-menu">
-      <h3>เพิ่มเมนูใหม่</h3>
-      <div class="form-group">
-        <label for="new-menu-name">ชื่อเมนู:</label>
-        <input type="text" id="new-menu-name" placeholder="ชื่อเมนู" />
+    <!-- แท็บเพิ่มเมนู -->
+    <div id="tab-add-menu" class="tab-content">
+      <div class="add-menu">
+        <h3>เพิ่มเมนูใหม่</h3>
+        <div class="form-group">
+          <label for="new-menu-name">ชื่อเมนู:</label>
+          <input type="text" id="new-menu-name" placeholder="ชื่อเมนู" />
+        </div>
+        <div class="form-group">
+          <label for="new-menu-price">ราคา (บาท):</label>
+          <input type="number" id="new-menu-price" placeholder="ราคา" min="0" />
+        </div>
+        <div class="form-group">
+          <label for="new-menu-category">หมวดหมู่:</label>
+          <select id="new-menu-category" class="form-select">
+            <option value="หมูสะเต๊ะ">หมูสะเต๊ะ</option>
+            <option value="หอยทอด">หอยทอด</option>
+            <option value="ผัดไทย">ผัดไทย</option>
+            <option value="เครื่องเคียง">เครื่องเคียง</option>
+          </select>
+        </div>
+        <button onclick="addNewMenu()">เพิ่มเมนู</button>
       </div>
-      <div class="form-group">
-        <label for="new-menu-price">ราคา (บาท):</label>
-        <input type="number" id="new-menu-price" placeholder="ราคา" min="0" />
-      </div>
-      <button onclick="addNewMenu()">เพิ่มเมนู</button>
     </div>
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="js/storage.js"></script>
     <script src="js/menu.js"></script>
     <script src="js/export.js"></script>

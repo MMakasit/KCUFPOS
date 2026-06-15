@@ -38,3 +38,22 @@ window.onclick = function(event) {
         closeEditModal();
     }
 }
+
+// ฟังก์ชันสลับหน้าต่าง (Tabs)
+function switchTab(tabId, btnElement) {
+    // ซ่อนเนื้อหาทุกแท็บ
+    const tabs = document.querySelectorAll('.tab-content');
+    tabs.forEach(tab => tab.classList.remove('active-tab'));
+    
+    // เอาคลาส active ออกจากทุกปุ่มบน navbar
+    const navBtns = document.querySelectorAll('.nav-btn');
+    navBtns.forEach(btn => btn.classList.remove('active'));
+    
+    // แสดงแท็บที่เลือก
+    document.getElementById(tabId).classList.add('active-tab');
+    
+    // ใส่คลาส active ให้กับปุ่มที่กด
+    if(btnElement) {
+        btnElement.classList.add('active');
+    }
+}

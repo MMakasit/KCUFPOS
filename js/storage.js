@@ -7,6 +7,10 @@ function loadMenuData() {
     
     if (savedData) {
         menuData = JSON.parse(savedData);
+        // ตรวจสอบและเพิ่มหมวดหมู่ให้ข้อมูลเก่า
+        for(let key in menuData) {
+            if(!menuData[key].category) menuData[key].category = 'หมูสะเต๊ะ';
+        }
     } else {
         // ถ้าไม่มีข้อมูลเดิม ให้โหลดเฉพาะรายชื่อเมนู
         const menuList = localStorage.getItem('food-counter-menu-list');
@@ -15,15 +19,16 @@ function loadMenuData() {
             // ตั้งค่าจำนวนเป็น 0 สำหรับทุกเมนู
             for (const menuName in menuData) {
                 menuData[menuName].count = 0;
+                if(!menuData[menuName].category) menuData[menuName].category = 'หมูสะเต๊ะ';
             }
         } else {
             // ถ้าไม่มีรายชื่อเมนูที่บันทึกไว้ ให้สร้างเมนูเริ่มต้น
             menuData = {
-                "ข้าวผัดกระเพรา": { price: 50, count: 0 },
-                "ข้าวผัด": { price: 45, count: 0 },
-                "ผัดซีอิ๊ว": { price: 50, count: 0 },
-                "ผัดไทย": { price: 60, count: 0 },
-                "ต้มยำกุ้ง": { price: 80, count: 0 }
+                "หมูสะเต๊ะชุดเล็ก": { price: 50, count: 0, category: 'หมูสะเต๊ะ' },
+                "หมูสะเต๊ะชุดใหญ่": { price: 100, count: 0, category: 'หมูสะเต๊ะ' },
+                "หอยทอดกระทะร้อน": { price: 50, count: 0, category: 'หอยทอด' },
+                "ผัดไทยกุ้งสด": { price: 60, count: 0, category: 'ผัดไทย' },
+                "ขนมปังปิ้ง": { price: 15, count: 0, category: 'เครื่องเคียง' }
             };
             // บันทึกรายชื่อเมนู
             saveMenuList();
@@ -77,5 +82,21 @@ function loadDailySales() {
             sales: [],
             totalRevenue: 0
         };
+    }
+}
+
+// ฟังก์ชันยกเลิกบิล
+function voidDailySale(timestamp) {
+    const currentDate = document.getElementById('current-date').value;
+    let dailySales = localStorage.getItem(`food-counter-sales-${currentDate}`);
+    
+    if (dailySales) {
+        dailySales = JSON.parse(dailySales);
+        const sale = dailySales.sales.find(s => s.timestamp === timestamp);
+        if (sale && sale.status !== 'voided') {
+            sale.status = 'voided';
+            dailySales.totalRevenue -= sale.totalAmount;
+            localStorage.setItem(`food-counter-sales-${currentDate}`, JSON.stringify(dailySales));
+        }
     }
 }

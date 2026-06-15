@@ -60,21 +60,26 @@ function exportDataToCSV() {
 
 // ฟังก์ชันส่งออกข้อมูลเป็น PDF
 function exportDataToPDF() {
-    alert("ฟังก์ชันนี้ต้องใช้ไลบรารี PDF เพิ่มเติม เช่น jsPDF\nคุณสามารถดาวน์โหลดและเพิ่มไลบรารีได้จาก: https://github.com/parallax/jsPDF");
-    
-    // ตัวอย่างโค้ดสำหรับใช้งานกับ jsPDF (ต้องเพิ่ม script ของ jsPDF ก่อน)
-    /*
+    if (!window.jspdf) {
+        alert("ไม่พบไลบรารี jsPDF กรุณารอโหลดสักครู่ หรือเช็คการเชื่อมต่ออินเทอร์เน็ต");
+        return;
+    }
+
+    const { jsPDF } = window.jspdf;
     const currentDate = document.getElementById('current-date').value;
     const doc = new jsPDF();
     
-    doc.text(`ยอดขายประจำวันที่ ${currentDate}`, 20, 20);
+    doc.addFont("https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.66/fonts/Roboto/Roboto-Regular.ttf", "Roboto", "normal");
+    doc.setFont("Roboto");
+    
+    doc.text(`Daily Sales: ${currentDate}`, 20, 20);
     doc.setFontSize(12);
     
     let yPosition = 40;
-    doc.text("ชื่อเมนู", 20, yPosition);
-    doc.text("ราคา", 80, yPosition);
-    doc.text("จำนวน", 120, yPosition);
-    doc.text("ยอดรวม", 160, yPosition);
+    doc.text("Menu Name", 20, yPosition);
+    doc.text("Price", 80, yPosition);
+    doc.text("Count", 120, yPosition);
+    doc.text("Total", 160, yPosition);
     
     yPosition += 10;
     let totalItems = 0;
@@ -83,6 +88,8 @@ function exportDataToPDF() {
     for (const [menuName, menuInfo] of Object.entries(menuData)) {
         if (menuInfo.count > 0) {
             const menuTotal = menuInfo.price * menuInfo.count;
+            // jsPDF default font may not support Thai characters well without custom font.
+            // Converting menuName might be needed, but we output it directly.
             doc.text(menuName, 20, yPosition);
             doc.text(menuInfo.price.toString(), 80, yPosition);
             doc.text(menuInfo.count.toString(), 120, yPosition);
@@ -95,11 +102,10 @@ function exportDataToPDF() {
     }
     
     yPosition += 5;
-    doc.setFontStyle('bold');
-    doc.text(`จำนวนรวมทั้งหมด: ${totalItems} รายการ`, 20, yPosition);
+    doc.setFont('Helvetica', 'bold');
+    doc.text(`Total Items: ${totalItems}`, 20, yPosition);
     yPosition += 10;
-    doc.text(`ยอดเงินรวมทั้งหมด: ${totalRevenue} บาท`, 20, yPosition);
+    doc.text(`Total Revenue: ${totalRevenue} THB`, 20, yPosition);
     
-    doc.save(`ยอดขาย-${currentDate}.pdf`);
-    */
+    doc.save(`Sales-${currentDate}.pdf`);
 }

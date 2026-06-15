@@ -1,27 +1,92 @@
+// ฟังก์ชันแปลงข้อความเพื่อป้องกัน XSS
+function escapeHTML(str) {
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+}
+
+function escapeJS(str) {
+    return str.replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '\\"');
+}
+
+let currentCategory = 'All';
+
+function filterCategory(category) {
+    currentCategory = category;
+    
+    // อัปเดต UI ปุ่ม
+    document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+    event.target.classList.add('active');
+    
+    renderMenuItems();
+}
+
 // ฟังก์ชันแสดงเมนูอาหาร
 function renderMenuItems() {
     const menuContainer = document.getElementById('menu-list');
     menuContainer.innerHTML = '';
     
     for (const [menuName, menuInfo] of Object.entries(menuData)) {
+        // กรองหมวดหมู่
+        if (currentCategory !== 'All' && menuInfo.category !== currentCategory) {
+            continue;
+        }
+
         const menuItem = document.createElement('div');
         menuItem.className = 'menu-item';
         
         const total = menuInfo.price * menuInfo.count;
         
+        const safeNameHTML = escapeHTML(menuName);
+        const safeNameJS = escapeJS(menuName);
+        
         menuItem.innerHTML = `
-            <button class="delete" onclick="deleteMenu('${menuName}')">ลบ</button>
-            <div class="menu-name">${menuName}</div>
+            <button class="delete" onclick="deleteMenu('${safeNameJS}')">ลบ</button>
+            <div class="menu-name">${safeNameHTML}</div>
             <div class="menu-price">${menuInfo.price} บาท</div>
             <div class="counter">
-                <button class="decrease" onclick="decreaseCount('${menuName}')">-</button>
+                <button class="decrease" onclick="decreaseCount('${safeNameJS}')">-</button>
                 <span class="count">${menuInfo.count}</span>
-                <button onclick="increaseCount('${menuName}')">+</button>
+                <button onclick="increaseCount('${safeNameJS}')">+</button>
             </div>
             <div class="total">รวม: ${total} บาท</div>
-            <button class="edit" onclick="editMenu('${menuName}')">แก้ไข</button>
+            <button class="edit" onclick="editMenu('${safeNameJS}')">แก้ไข</button>
         `;
         menuContainer.appendChild(menuItem);
+    }
+    
+    updateCurrentOrderSummary();
+}
+
+// ฟังก์ชันอัปเดตรายการอาหารของลูกค้า (หน้าหลัก)
+function updateCurrentOrderSummary() {
+    const summaryContainer = document.getElementById('current-order-summary');
+    const summaryContent = document.getElementById('current-order-content');
+    
+    if (!summaryContainer || !summaryContent) return;
+    
+    let totalItems = 0;
+    let totalRevenue = 0;
+    let summaryHTML = '<ul>';
+    
+    for (const [menuName, menuInfo] of Object.entries(menuData)) {
+        if (menuInfo.count > 0) {
+            const menuTotal = menuInfo.price * menuInfo.count;
+            summaryHTML += `<li>${escapeHTML(menuName)}: ${menuInfo.count} รายการ x ${menuInfo.price} บาท = ${menuTotal} บาท</li>`;
+            totalItems += menuInfo.count;
+            totalRevenue += menuTotal;
+        }
+    }
+    
+    summaryHTML += '</ul>';
+    
+    if (totalItems > 0) {
+        summaryHTML += `<p><strong>จำนวนรวมทั้งหมด: ${totalItems} รายการ</strong></p>`;
+        summaryHTML += `<p><strong>ยอดเงินรวมทั้งหมด: ${totalRevenue} บาท</strong></p>`;
+        summaryContent.innerHTML = summaryHTML;
+        summaryContainer.style.display = 'block';
+    } else {
+        summaryContainer.style.display = 'none';
     }
 }
 
@@ -47,12 +112,14 @@ function decreaseCount(menuName) {
 function addNewMenu() {
     const newMenuName = document.getElementById('new-menu-name').value.trim();
     const newMenuPrice = parseFloat(document.getElementById('new-menu-price').value);
+    const newMenuCategory = document.getElementById('new-menu-category').value;
     
     if (newMenuName && !isNaN(newMenuPrice) && newMenuPrice >= 0) {
         if (!menuData.hasOwnProperty(newMenuName)) {
             menuData[newMenuName] = {
                 price: newMenuPrice,
-                count: 0
+                count: 0,
+                category: newMenuCategory
             };
             saveData();
             saveMenuList();
@@ -108,7 +175,8 @@ function saveEditMenu() {
             // สร้างเมนูใหม่ด้วยข้อมูลเดิม
             menuData[newName] = {
                 price: newPrice,
-                count: menuData[currentEditingMenu].count
+                count: menuData[currentEditingMenu].count,
+                category: menuData[currentEditingMenu].category
             };
             
             // ลบเมนูเก่า
@@ -131,27 +199,11 @@ function saveEditMenu() {
 // ฟังก์ชันอัปเดตสรุปยอดรวม
 function updateSummary() {
     const summaryContent = document.getElementById('summary-content');
-    let totalItems = 0;
-    let totalRevenue = 0;
-    let summaryHTML = '<h3>รายการปัจจุบัน</h3><ul>';
-    
-    for (const [menuName, menuInfo] of Object.entries(menuData)) {
-        if (menuInfo.count > 0) {
-            const menuTotal = menuInfo.price * menuInfo.count;
-            summaryHTML += `<li>${menuName}: ${menuInfo.count} รายการ x ${menuInfo.price} บาท = ${menuTotal} บาท</li>`;
-            totalItems += menuInfo.count;
-            totalRevenue += menuTotal;
-        }
-    }
-    
-    summaryHTML += '</ul>';
-    summaryHTML += `<p><strong>จำนวนรวมทั้งหมด: ${totalItems} รายการ</strong></p>`;
-    summaryHTML += `<p><strong>ยอดเงินรวมทั้งหมด: ${totalRevenue} บาท</strong></p>`;
+    let summaryHTML = '';
     
     // เพิ่มข้อมูลสรุปยอดขายประจำวัน
     const dailySales = loadDailySales();
-    summaryHTML += '<hr/>';
-    summaryHTML += '<h3>สรุปยอดขายประจำวัน</h3>';
+    summaryHTML += '<h2>สรุปยอดขายประจำวัน</h2>';
     
     if (dailySales.sales.length > 0) {
         // สร้างออบเจ็กต์เก็บยอดรวมของแต่ละเมนูที่ขายในวันนั้น
@@ -175,7 +227,7 @@ function updateSummary() {
         summaryHTML += '<h4>ยอดรวมอาหารแต่ละรายการ:</h4>';
         summaryHTML += '<ul>';
         for (const [menuName, info] of Object.entries(menuTotalSold)) {
-            summaryHTML += `<li>${menuName}: ขายได้ทั้งหมด ${info.count} รายการ = ${info.revenue} บาท</li>`;
+            summaryHTML += `<li>${escapeHTML(menuName)}: ขายได้ทั้งหมด ${info.count} รายการ = ${info.revenue} บาท</li>`;
         }
         summaryHTML += '</ul>';
         
@@ -184,12 +236,15 @@ function updateSummary() {
         summaryHTML += '<ul>';
         dailySales.sales.forEach((sale, index) => {
             const saleTime = new Date(sale.timestamp).toLocaleTimeString();
-            let itemsList = '';
-            for (const [menuName, itemInfo] of Object.entries(sale.items)) {
-                itemsList += `${menuName} x${itemInfo.count}, `;
+            let itemsList = Object.entries(sale.items)
+                .map(([menuName, itemInfo]) => `${escapeHTML(menuName)} x${itemInfo.count}`)
+                .join(', ');
+            
+            if (sale.status === 'voided') {
+                summaryHTML += `<li><del>การขายครั้งที่ ${index + 1} (${saleTime}) - ${itemsList} - ${sale.totalAmount} บาท</del> <span style="color:red;">(ยกเลิกแล้ว)</span></li>`;
+            } else {
+                summaryHTML += `<li>การขายครั้งที่ ${index + 1} (${saleTime}) - ${itemsList} - ${sale.totalAmount} บาท <button class="btn-void" onclick="confirmVoidSale(${sale.timestamp})">ยกเลิกบิล</button></li>`;
             }
-            itemsList = itemsList.slice(0, -2); // ตัดเครื่องหมาย ", " ตัวสุดท้ายออก
-            summaryHTML += `<li>การขายครั้งที่ ${index + 1} (${saleTime}) - ${itemsList} - ${sale.totalAmount} บาท</li>`;
         });
         summaryHTML += '</ul>';
         
@@ -200,6 +255,13 @@ function updateSummary() {
     }
     
     summaryContent.innerHTML = summaryHTML;
+}
+
+function confirmVoidSale(timestamp) {
+    if (confirm("คุณแน่ใจหรือไม่ว่าต้องการยกเลิกบิลนี้? ยอดเงินจะถูกหักออกทันที")) {
+        voidDailySale(timestamp);
+        updateSummary();
+    }
 }
 
 // ฟังก์ชันเปิดโมดัลชำระเงิน
@@ -215,7 +277,7 @@ function openPaymentModal() {
     for (const [menuName, menuInfo] of Object.entries(menuData)) {
         if (menuInfo.count > 0) {
             const menuTotal = menuInfo.price * menuInfo.count;
-            summaryHTML += `<li>${menuName}: ${menuInfo.count} x ${menuInfo.price} = ${menuTotal} บาท</li>`;
+            summaryHTML += `<li>${escapeHTML(menuName)}: ${menuInfo.count} x ${menuInfo.price} = ${menuTotal} บาท</li>`;
             totalPrice += menuTotal;
         }
     }
@@ -223,6 +285,11 @@ function openPaymentModal() {
     summaryHTML += '</ul>';
     paymentOrderSummary.innerHTML = summaryHTML;
     totalPriceInput.value = `${totalPrice} บาท`;
+    
+    // รีเซ็ตช่องรับเงิน
+    document.getElementById('receive-amount').value = '';
+    document.getElementById('change-amount').value = '';
+    document.getElementById('btn-process-payment').disabled = true;
     
     // แสดงโมดัล
     paymentModal.style.display = 'block';
@@ -233,18 +300,51 @@ function closePaymentModal() {
     document.getElementById('payment-modal').style.display = 'none';
 }
 
-// ฟังก์ชันประมวลผลการชำระเงิน
+function setReceiveAmount(amount) {
+    const totalPrice = parseFloat(document.getElementById('total-price').value.replace(' บาท', ''));
+    const receiveInput = document.getElementById('receive-amount');
+    
+    if (amount === 'exact') {
+        receiveInput.value = totalPrice;
+    } else {
+        const currentAmount = parseFloat(receiveInput.value) || 0;
+        receiveInput.value = currentAmount + amount;
+    }
+    
+    calculateChange();
+}
+
+function calculateChange() {
+    const totalPrice = parseFloat(document.getElementById('total-price').value.replace(' บาท', ''));
+    const receiveAmount = parseFloat(document.getElementById('receive-amount').value) || 0;
+    const changeInput = document.getElementById('change-amount');
+    const btnProcess = document.getElementById('btn-process-payment');
+    
+    if (receiveAmount >= totalPrice) {
+        changeInput.value = (receiveAmount - totalPrice) + ' บาท';
+        btnProcess.disabled = false;
+    } else {
+        changeInput.value = 'เงินไม่พอ';
+        btnProcess.disabled = true;
+    }
+}
+
 // ฟังก์ชันประมวลผลการชำระเงิน
 function processPayment() {
     const totalPriceText = document.getElementById('total-price').value;
     const totalPrice = parseFloat(totalPriceText.replace(' บาท', ''));
     
+    const receiveAmount = parseFloat(document.getElementById('receive-amount').value);
+    const changeAmount = receiveAmount - totalPrice;
+    
     // สร้างข้อมูลการขาย
     const saleData = {
         timestamp: new Date().getTime(),
         items: {},
-        totalAmount: totalPrice
-        // ลบ customerPaid และ change จากตรงนี้
+        totalAmount: totalPrice,
+        receiveAmount: receiveAmount,
+        changeAmount: changeAmount,
+        status: 'completed'
     };
     
     // บันทึกรายการอาหารที่ขาย
