@@ -51,6 +51,7 @@ function renderMenuItems() {
             </div>
             <div class="total">รวม: ${total} บาท</div>
             <button class="edit" onclick="editMenu('${safeNameJS}')">แก้ไข</button>
+            ${menuInfo.hasSides ? `<button class="btn-add-side" onclick="openSideDishModal()">➕ เพิ่มเครื่องเคียง</button>` : ''}
         `;
         menuContainer.appendChild(menuItem);
     }
@@ -113,19 +114,22 @@ function addNewMenu() {
     const newMenuName = document.getElementById('new-menu-name').value.trim();
     const newMenuPrice = parseFloat(document.getElementById('new-menu-price').value);
     const newMenuCategory = document.getElementById('new-menu-category').value;
+    const newMenuHasSides = document.getElementById('new-menu-has-sides').checked;
     
     if (newMenuName && !isNaN(newMenuPrice) && newMenuPrice >= 0) {
         if (!menuData.hasOwnProperty(newMenuName)) {
             menuData[newMenuName] = {
                 price: newMenuPrice,
                 count: 0,
-                category: newMenuCategory
+                category: newMenuCategory,
+                hasSides: newMenuHasSides
             };
             saveData();
             saveMenuList();
             renderMenuItems();
             document.getElementById('new-menu-name').value = '';
             document.getElementById('new-menu-price').value = '';
+            document.getElementById('new-menu-has-sides').checked = false;
         } else {
             alert('เมนูนี้มีอยู่แล้ว');
         }
@@ -150,6 +154,7 @@ function editMenu(menuName) {
     currentEditingMenu = menuName;
     document.getElementById('edit-menu-name').value = menuName;
     document.getElementById('edit-menu-price').value = menuData[menuName].price;
+    document.getElementById('edit-menu-has-sides').checked = menuData[menuName].hasSides || false;
     document.getElementById('editModal').style.display = 'block';
 }
 
@@ -162,6 +167,7 @@ function closeEditModal() {
 function saveEditMenu() {
     const newName = document.getElementById('edit-menu-name').value.trim();
     const newPrice = parseFloat(document.getElementById('edit-menu-price').value);
+    const newHasSides = document.getElementById('edit-menu-has-sides').checked;
     
     if (newName && !isNaN(newPrice) && newPrice >= 0) {
         // ถ้าเปลี่ยนชื่อ
@@ -176,14 +182,16 @@ function saveEditMenu() {
             menuData[newName] = {
                 price: newPrice,
                 count: menuData[currentEditingMenu].count,
-                category: menuData[currentEditingMenu].category
+                category: menuData[currentEditingMenu].category,
+                hasSides: newHasSides
             };
             
             // ลบเมนูเก่า
             delete menuData[currentEditingMenu];
         } else {
-            // อัพเดทเฉพาะราคา
+            // อัพเดทเฉพาะราคาและเครื่องเคียง
             menuData[currentEditingMenu].price = newPrice;
+            menuData[currentEditingMenu].hasSides = newHasSides;
         }
         
         saveData();
@@ -262,6 +270,38 @@ function confirmVoidSale(timestamp) {
         voidDailySale(timestamp);
         updateSummary();
     }
+}
+
+// Side Dish Modal Logic
+function openSideDishModal() {
+    const modal = document.getElementById('side-dish-modal');
+    const list = document.getElementById('side-dish-list');
+    list.innerHTML = '';
+    
+    for (const [menuName, menuInfo] of Object.entries(menuData)) {
+        if (menuInfo.category === 'เครื่องเคียง') {
+            const safeNameHTML = escapeHTML(menuName);
+            const safeNameJS = escapeJS(menuName);
+            const item = document.createElement('div');
+            item.className = 'side-dish-item';
+            item.innerHTML = `
+                <div class="menu-name">${safeNameHTML}</div>
+                <div class="menu-price">${menuInfo.price} บาท</div>
+                <div class="counter">
+                    <button class="decrease" onclick="decreaseCount('${safeNameJS}'); event.stopPropagation(); openSideDishModal();">-</button>
+                    <span class="count">${menuInfo.count}</span>
+                    <button onclick="increaseCount('${safeNameJS}'); event.stopPropagation(); openSideDishModal();">+</button>
+                </div>
+            `;
+            list.appendChild(item);
+        }
+    }
+    
+    modal.style.display = 'block';
+}
+
+function closeSideDishModal() {
+    document.getElementById('side-dish-modal').style.display = 'none';
 }
 
 // ฟังก์ชันเปิดโมดัลชำระเงิน

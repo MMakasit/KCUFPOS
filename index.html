@@ -78,7 +78,13 @@
         </div>
         <div class="form-group">
           <label for="edit-menu-price">ราคา (บาท):</label>
-          <input type="number" id="edit-menu-price" min="0" />
+          <input type="number" id="edit-menu-price" placeholder="ราคา" min="0" />
+        </div>
+        <div class="form-group">
+          <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+            <input type="checkbox" id="edit-menu-has-sides" style="width: auto;">
+            <span>เมนูนี้สามารถเพิ่มเครื่องเคียงได้</span>
+          </label>
         </div>
         <button onclick="saveEditMenu()">บันทึก</button>
       </div>
@@ -134,6 +140,12 @@
             <option value="เครื่องเคียง">เครื่องเคียง</option>
           </select>
         </div>
+        <div class="form-group">
+          <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+            <input type="checkbox" id="new-menu-has-sides" style="width: auto;">
+            <span>เมนูนี้สามารถเพิ่มเครื่องเคียงได้</span>
+          </label>
+        </div>
         <button onclick="addNewMenu()">เพิ่มเมนู</button>
       </div>
     </div>
@@ -143,6 +155,19 @@
     <script src="js/menu.js"></script>
     <script src="js/export.js"></script>
     <script src="js/app.js"></script>
+
+    <!-- Modal สำหรับเลือกเครื่องเคียง -->
+    <div id="side-dish-modal" class="modal">
+      <div class="modal-content" style="max-width: 500px;">
+        <span class="close" onclick="closeSideDishModal()">&times;</span>
+        <h2 style="margin-top: 0;">➕ เลือกเครื่องเคียงเพิ่ม</h2>
+        <div id="side-dish-list" class="side-dish-grid">
+          <!-- รายการเครื่องเคียงจะถูกสร้างโดย JavaScript -->
+        </div>
+        <button onclick="closeSideDishModal()" style="margin-top: 1.5rem;">เสร็จสิ้น</button>
+      </div>
+    </div>
+    
     <script>
       // ลงทะเบียน Service Worker
       if ("serviceWorker" in navigator) {

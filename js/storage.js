@@ -10,6 +10,7 @@ function loadMenuData() {
         // ตรวจสอบและเพิ่มหมวดหมู่ให้ข้อมูลเก่า
         for(let key in menuData) {
             if(!menuData[key].category) menuData[key].category = 'หมูสะเต๊ะ';
+            if(typeof menuData[key].hasSides === 'undefined') menuData[key].hasSides = false;
         }
     } else {
         // ถ้าไม่มีข้อมูลเดิม ให้โหลดเฉพาะรายชื่อเมนู
@@ -20,15 +21,16 @@ function loadMenuData() {
             for (const menuName in menuData) {
                 menuData[menuName].count = 0;
                 if(!menuData[menuName].category) menuData[menuName].category = 'หมูสะเต๊ะ';
+                if(typeof menuData[menuName].hasSides === 'undefined') menuData[menuName].hasSides = false;
             }
         } else {
             // ถ้าไม่มีรายชื่อเมนูที่บันทึกไว้ ให้สร้างเมนูเริ่มต้น
             menuData = {
-                "หมูสะเต๊ะชุดเล็ก": { price: 50, count: 0, category: 'หมูสะเต๊ะ' },
-                "หมูสะเต๊ะชุดใหญ่": { price: 100, count: 0, category: 'หมูสะเต๊ะ' },
-                "หอยทอดกระทะร้อน": { price: 50, count: 0, category: 'หอยทอด' },
-                "ผัดไทยกุ้งสด": { price: 60, count: 0, category: 'ผัดไทย' },
-                "ขนมปังปิ้ง": { price: 15, count: 0, category: 'เครื่องเคียง' }
+                "หมูสะเต๊ะชุดเล็ก": { price: 50, count: 0, category: 'หมูสะเต๊ะ', hasSides: true },
+                "หมูสะเต๊ะชุดใหญ่": { price: 100, count: 0, category: 'หมูสะเต๊ะ', hasSides: true },
+                "หอยทอดกระทะร้อน": { price: 50, count: 0, category: 'หอยทอด', hasSides: false },
+                "ผัดไทยกุ้งสด": { price: 60, count: 0, category: 'ผัดไทย', hasSides: false },
+                "ขนมปังปิ้ง": { price: 15, count: 0, category: 'เครื่องเคียง', hasSides: false }
             };
             // บันทึกรายชื่อเมนู
             saveMenuList();
