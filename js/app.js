@@ -56,4 +56,18 @@ function switchTab(tabId, btnElement) {
     if(btnElement) {
         btnElement.classList.add('active');
     }
+
+    // ปิดเมนูแฮมเบอร์เกอร์ถ้าเปิดอยู่
+    const navContent = document.getElementById('nav-content');
+    if (navContent && navContent.classList.contains('show')) {
+        navContent.classList.remove('show');
+    }
+}
+
+// ฟังก์ชันเปิด/ปิด Hamburger Menu
+function toggleMenu() {
+    const navContent = document.getElementById('nav-content');
+    if (navContent) {
+        navContent.classList.toggle('show');
+    }
 }

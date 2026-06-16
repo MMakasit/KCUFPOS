@@ -12,20 +12,26 @@
   </head>
 
   <body>
-    <nav class="navbar">
-      <div class="nav-brand">KCUFPOS</div>
-      
+    <!-- Floating Hamburger Icon -->
+    <div class="floating-hamburger" onclick="toggleMenu()">
+      <span></span>
+      <span></span>
+      <span></span>
+    </div>
+
+    <!-- Nav Content Menu -->
+    <div class="nav-content" id="nav-content">
+      <div class="nav-brand-menu">KCUFPOS</div>
       <div class="date-picker">
         <label for="current-date">เลือกวันที่: </label>
         <input type="date" id="current-date" />
       </div>
-
       <div class="nav-links">
         <button class="nav-btn active" onclick="switchTab('tab-home', this)">🏠 หน้าหลัก</button>
         <button class="nav-btn" onclick="switchTab('tab-add-menu', this)">➕ เพิ่มเมนู</button>
         <button class="nav-btn" onclick="switchTab('tab-summary', this)">📊 สรุปยอดขาย</button>
       </div>
-    </nav>
+    </div>
 
     <!-- แท็บหน้าหลัก -->
     <div id="tab-home" class="tab-content active-tab">
