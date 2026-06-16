@@ -35,13 +35,12 @@ function renderMenuItems() {
         const menuItem = document.createElement('div');
         menuItem.className = 'menu-item';
         
-        const total = menuInfo.price * menuInfo.count;
-        
         const safeNameHTML = escapeHTML(menuName);
         const safeNameJS = escapeJS(menuName);
         
         menuItem.innerHTML = `
             <button class="delete" onclick="deleteMenu('${safeNameJS}')">ลบ</button>
+            <button class="edit" onclick="editMenu('${safeNameJS}')">แก้ไข</button>
             <div class="menu-name">${safeNameHTML}</div>
             <div class="menu-price">${menuInfo.price} บาท</div>
             <div class="counter">
@@ -49,8 +48,6 @@ function renderMenuItems() {
                 <span class="count">${menuInfo.count}</span>
                 <button onclick="increaseCount('${safeNameJS}')">+</button>
             </div>
-            <div class="total">รวม: ${total} บาท</div>
-            <button class="edit" onclick="editMenu('${safeNameJS}')">แก้ไข</button>
             ${menuInfo.hasSides ? `<button class="btn-add-side" onclick="openSideDishModal()">➕ เพิ่มเครื่องเคียง</button>` : ''}
         `;
         menuContainer.appendChild(menuItem);
@@ -113,7 +110,7 @@ function decreaseCount(menuName) {
 function addNewMenu() {
     const newMenuName = document.getElementById('new-menu-name').value.trim();
     const newMenuPrice = parseFloat(document.getElementById('new-menu-price').value);
-    const newMenuCategory = document.getElementById('new-menu-category').value;
+    const newMenuCategory = document.querySelector('input[name="new-menu-category"]:checked').value;
     const newMenuHasSides = document.getElementById('new-menu-has-sides').checked;
     
     if (newMenuName && !isNaN(newMenuPrice) && newMenuPrice >= 0) {
@@ -178,16 +175,21 @@ function saveEditMenu() {
                 return;
             }
             
-            // สร้างเมนูใหม่ด้วยข้อมูลเดิม
-            menuData[newName] = {
-                price: newPrice,
-                count: menuData[currentEditingMenu].count,
-                category: menuData[currentEditingMenu].category,
-                hasSides: newHasSides
-            };
-            
-            // ลบเมนูเก่า
-            delete menuData[currentEditingMenu];
+            // สร้างเมนูใหม่ด้วยข้อมูลเดิม แต่รักษาลำดับเดิม
+            const newMenuData = {};
+            for (let key in menuData) {
+                if (key === currentEditingMenu) {
+                    newMenuData[newName] = {
+                        price: newPrice,
+                        count: menuData[currentEditingMenu].count,
+                        category: menuData[currentEditingMenu].category,
+                        hasSides: newHasSides
+                    };
+                } else {
+                    newMenuData[key] = menuData[key];
+                }
+            }
+            menuData = newMenuData;
         } else {
             // อัพเดทเฉพาะราคาและเครื่องเคียง
             menuData[currentEditingMenu].price = newPrice;
@@ -219,6 +221,7 @@ function updateSummary() {
         
         // รวมจำนวนอาหารที่ขายในแต่ละรายการ
         dailySales.sales.forEach(sale => {
+            if (sale.status === 'voided') return; // ข้ามรายการที่ถูกยกเลิก
             for (const [menuName, itemInfo] of Object.entries(sale.items)) {
                 if (!menuTotalSold[menuName]) {
                     menuTotalSold[menuName] = {
@@ -340,17 +343,19 @@ function closePaymentModal() {
     document.getElementById('payment-modal').style.display = 'none';
 }
 
-function setReceiveAmount(amount) {
-    const totalPrice = parseFloat(document.getElementById('total-price').value.replace(' บาท', ''));
+function addReceiveAmount(amount) {
+    const receiveInput = document.getElementById('receive-amount');
+    const currentAmount = parseFloat(receiveInput.value) || 0;
+    const newAmount = currentAmount + amount;
+    
+    receiveInput.value = newAmount;
+    calculateChange();
+}
+
+function resetReceiveAmount() {
     const receiveInput = document.getElementById('receive-amount');
     
-    if (amount === 'exact') {
-        receiveInput.value = totalPrice;
-    } else {
-        const currentAmount = parseFloat(receiveInput.value) || 0;
-        receiveInput.value = currentAmount + amount;
-    }
-    
+    receiveInput.value = '';
     calculateChange();
 }
 

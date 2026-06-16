@@ -12,9 +12,14 @@
   </head>
 
   <body>
-    <!-- Navbar -->
     <nav class="navbar">
       <div class="nav-brand">KCUFPOS</div>
+      
+      <div class="date-picker">
+        <label for="current-date">เลือกวันที่: </label>
+        <input type="date" id="current-date" />
+      </div>
+
       <div class="nav-links">
         <button class="nav-btn active" onclick="switchTab('tab-home', this)">🏠 หน้าหลัก</button>
         <button class="nav-btn" onclick="switchTab('tab-add-menu', this)">➕ เพิ่มเมนู</button>
@@ -25,11 +30,6 @@
     <!-- แท็บหน้าหลัก -->
     <div id="tab-home" class="tab-content active-tab">
 
-    <div class="date-picker">
-      <label for="current-date">เลือกวันที่: </label>
-      <input type="date" id="current-date" />
-    </div>
-
     <!-- Category Filter -->
     <div class="category-filters" id="category-filters">
       <button class="filter-btn active" onclick="filterCategory('All')">ทั้งหมด</button>
@@ -39,19 +39,29 @@
       <button class="filter-btn" onclick="filterCategory('เครื่องเคียง')">เครื่องเคียง</button>
     </div>
 
-    <div class="payment-button-container">
-      <!-- ปุ่มชำระเงินจะถูกเพิ่มที่นี่ด้วย JavaScript -->
-    </div>
+    <div class="main-layout-grid">
+      <!-- Left Sidebar: Cart -->
+      <div class="sidebar-left">
+        <div class="summary current-order-summary" id="current-order-summary" style="display: none;">
+          <h2>รายการอาหารของลูกค้า</h2>
+          <h3>รายการปัจจุบัน</h3>
+          <div id="current-order-content"></div>
+        </div>
+      </div>
 
-    <div class="menu-list" id="menu-list">
-      <!-- เมนูอาหารจะถูกสร้างโดย JavaScript -->
-    </div>
-    
-    <!-- สรุปรายการปัจจุบัน -->
-    <div class="summary current-order-summary" id="current-order-summary" style="display: none;">
-      <h2>รายการอาหารของลูกค้า</h2>
-      <h3>รายการปัจจุบัน</h3>
-      <div id="current-order-content"></div>
+      <!-- Center: Menu List -->
+      <div class="main-content">
+        <div class="menu-list" id="menu-list">
+          <!-- เมนูอาหารจะถูกสร้างโดย JavaScript -->
+        </div>
+      </div>
+
+      <!-- Right Sidebar: Payment -->
+      <div class="sidebar-right">
+        <div class="payment-button-container">
+          <!-- ปุ่มชำระเงินจะถูกเพิ่มที่นี่ด้วย JavaScript -->
+        </div>
+      </div>
     </div>
     
     </div> <!-- ปิดแท็บหน้าหลัก -->
@@ -109,7 +119,18 @@
         </div>
         <div class="form-group">
           <label for="receive-amount">รับเงินมา (บาท):</label>
-          <input type="number" id="receive-amount" placeholder="กรอกจำนวนเงินที่รับมา" oninput="calculateChange()" min="0"/>
+          <input type="number" id="receive-amount" placeholder="กรอกจำนวนเงินที่รับมา" oninput="calculateChange()" min="0" value="0" style="margin-bottom: 0.5rem;" />
+          <div class="preset-amount-buttons">
+            <button type="button" class="preset-amt-btn" onclick="addReceiveAmount(1)">+1</button>
+            <button type="button" class="preset-amt-btn" onclick="addReceiveAmount(5)">+5</button>
+            <button type="button" class="preset-amt-btn" onclick="addReceiveAmount(10)">+10</button>
+            <button type="button" class="preset-amt-btn" onclick="addReceiveAmount(20)">+20</button>
+            <button type="button" class="preset-amt-btn" onclick="addReceiveAmount(50)">+50</button>
+            <button type="button" class="preset-amt-btn" onclick="addReceiveAmount(100)">+100</button>
+            <button type="button" class="preset-amt-btn" onclick="addReceiveAmount(500)">+500</button>
+            <button type="button" class="preset-amt-btn" onclick="addReceiveAmount(1000)">+1000</button>
+            <button type="button" class="preset-amt-btn btn-reset" onclick="resetReceiveAmount()">รีเซ็ต</button>
+          </div>
         </div>
         <div class="form-group">
           <label for="change-amount">เงินทอน (บาท):</label>
@@ -124,21 +145,21 @@
       <div class="add-menu">
         <h3>เพิ่มเมนูใหม่</h3>
         <div class="form-group">
+          <label>หมวดหมู่:</label>
+          <div class="radio-options" style="display: flex; gap: 1rem; margin-bottom: 1rem; flex-wrap: wrap;">
+            <label><input type="radio" name="new-menu-category" value="หมูสะเต๊ะ" checked> หมูสะเต๊ะ</label>
+            <label><input type="radio" name="new-menu-category" value="หอยทอด"> หอยทอด</label>
+            <label><input type="radio" name="new-menu-category" value="ผัดไทย"> ผัดไทย</label>
+            <label><input type="radio" name="new-menu-category" value="เครื่องเคียง"> เครื่องเคียง</label>
+          </div>
+        </div>
+        <div class="form-group">
           <label for="new-menu-name">ชื่อเมนู:</label>
           <input type="text" id="new-menu-name" placeholder="ชื่อเมนู" />
         </div>
         <div class="form-group">
           <label for="new-menu-price">ราคา (บาท):</label>
           <input type="number" id="new-menu-price" placeholder="ราคา" min="0" />
-        </div>
-        <div class="form-group">
-          <label for="new-menu-category">หมวดหมู่:</label>
-          <select id="new-menu-category" class="form-select">
-            <option value="หมูสะเต๊ะ">หมูสะเต๊ะ</option>
-            <option value="หอยทอด">หอยทอด</option>
-            <option value="ผัดไทย">ผัดไทย</option>
-            <option value="เครื่องเคียง">เครื่องเคียง</option>
-          </select>
         </div>
         <div class="form-group">
           <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
