@@ -1,5 +1,5 @@
 // กำหนดชื่อแคชและไฟล์ที่ต้องการแคช
-const CACHE_NAME = 'food-counter-app-v9';
+const CACHE_NAME = 'food-counter-app-v10';
 const urlsToCache = [
   '/',
   '/index.html',
